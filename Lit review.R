@@ -16,9 +16,8 @@ library(patchwork)
 
 #Quick data processing
 
-lit <- read_excel("W:/UAF Research Work/UAF Research Projects/Alaska_Beaver_Fish_Literature_Review.R/Annotated bibliography.xlsx")
+lit <- read_excel("Annotated bibliography.xlsx")
 str(lit)
-
 
 
 
@@ -26,7 +25,7 @@ lit_filtered <- lit %>%
   filter(!is.na(Region), !is.na(`Data type`),
          `Include in Map` == "Y")
   
-nrow(lit_filtered) #51 articles that directly discuss beaver/fish interactions
+nrow(lit_filtered) #62 articles that directly discuss beaver/fish interactions
 
 
 
@@ -82,20 +81,32 @@ ggsave("Figures/Regions_plot.jpeg", Regions_plot,
 
 cols_effect <- c(
   "Negative" = "#B04A4A",
-  "Neutral/Mixed" = "#7A868C",
+  "Neutral" = "#7A868C",
+  "Mixed" = "#8B6F47",
   "Positive" = "#2F7D4A"
 )
 
+effect_order <- c("Negative", "Neutral", "Mixed", "Positive")
+
+lit_filtered2 <- lit_filtered %>%
+  mutate(`General effect on fish` = factor(`General effect on fish`, levels = effect_order))
 
 
-effects_plot <- ggplot(lit_filtered, aes(x = Region, fill = `General effect on fish`)) +
+
+
+
+effects_plot <- ggplot(lit_filtered2, aes(x = Region, fill = `General effect on fish`)) +
   geom_bar(
-    data = dplyr::filter(lit_filtered, !is.na(`General effect on fish`)),
+    data = dplyr::filter(lit_filtered2, !is.na(`General effect on fish`)),
     width = 0.7
   ) +
   coord_flip() +
-  scale_fill_manual(values = cols_effect) +
-  labs(x = NULL, y = "Number of studies", fill = "Data type") +
+  scale_fill_manual(
+    values = cols_effect,
+    limits = effect_order,
+    breaks = effect_order
+  ) +
+  labs(x = NULL, y = "Number of studies", fill = "General effect on fish") +
   theme_cowplot() +
   theme(
     legend.position = "bottom",
@@ -105,25 +116,29 @@ effects_plot <- ggplot(lit_filtered, aes(x = Region, fill = `General effect on f
     panel.grid.major.x = element_line(color = "grey85"),
     panel.grid.major.y = element_blank()
   )
+
 effects_plot
 
 ggsave("Figures/effects_plot.jpeg", effects_plot, 
-       width = 7, 
-       height = 5, 
+       width = 8, 
+       height = 6, 
        dpi = 300)
 
 
 
 
-
-datatype_plot <- ggplot(lit_filtered, aes(x = `Data type`, fill = `General effect on fish`)) +
+datatype_plot <- ggplot(lit_filtered2, aes(x = `Data type`, fill = `General effect on fish`)) +
   geom_bar(
-    data = dplyr::filter(lit_filtered, !is.na(`General effect on fish`)),
+    data = dplyr::filter(lit_filtered2, !is.na(`General effect on fish`)),
     width = 0.7
   ) +
   coord_flip() +
-  scale_fill_manual(values = cols_effect) +
-  labs(x = NULL, y = "Number of studies", fill = "Data type") +
+  scale_fill_manual(
+    values = cols_effect,
+    limits = effect_order,
+    breaks = effect_order
+  ) +
+  labs(x = NULL, y = "Number of studies", fill = "General effect on fish") +
   theme_cowplot() +
   theme(
     legend.position = "bottom",
@@ -133,6 +148,7 @@ datatype_plot <- ggplot(lit_filtered, aes(x = `Data type`, fill = `General effec
     panel.grid.major.x = element_line(color = "grey85"),
     panel.grid.major.y = element_blank()
   )
+
 datatype_plot
 
 ggsave("Figures/datatype_plot.jpeg", datatype_plot, 
@@ -165,7 +181,7 @@ ggsave("Figures/pubs_over_time.jpeg", pubs_over_time,
 panel <- (effects_plot + datatype_plot)/(Regions_plot + pubs_over_time)
 
 ggsave("Figures/panel.jpeg", panel, 
-       width = 10, 
-       height = 8, 
+       width = 12, 
+       height = 10, 
        dpi = 300)
 
