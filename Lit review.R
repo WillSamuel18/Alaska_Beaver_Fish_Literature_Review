@@ -16,7 +16,8 @@ library(patchwork)
 
 #Quick data processing
 
-lit <- read_excel("Annotated bibliography.xlsx")
+#lit <- read_excel("Annotated bibliography.xlsx")
+lit <- read_excel("Annotated bibliography Final.xlsx")
 str(lit)
 
 
@@ -40,7 +41,86 @@ lit_filtered <- lit_filtered %>%
 
 
 
-#Plotting
+
+
+# Summary Statisitics -----------------------------------------------------
+#Overall
+nrow(lit_filtered) #63
+sum(lit_filtered$`Article Type` == "Publication", na.rm = TRUE) #19
+sum(lit_filtered$`Article Type` == "Agency report", na.rm = TRUE) #28
+sum(lit_filtered$`Article Type` == "Thesis/dissertation", na.rm = TRUE) #10
+sum(lit_filtered$`Article Type` == "Conference proceeding", na.rm = TRUE) #1
+sum(lit_filtered$`Article Type` == "Book", na.rm = TRUE) #0
+sum(lit_filtered$`Article Type` %in% c("White paper", "Unpublished data"), na.rm = TRUE) #5
+
+sum(lit_filtered$`Data type` == "Empirical", na.rm = TRUE) #45
+sum(lit_filtered$`Data type` == "Management Action", na.rm = TRUE) #5
+sum(lit_filtered$`Data type` == "TEK", na.rm = TRUE) #13
+
+sum(lit_filtered$`General effect on fish` == "Positive", na.rm = TRUE) #13
+sum(lit_filtered$`General effect on fish` == "Negative", na.rm = TRUE) #39
+sum(lit_filtered$`General effect on fish` == "Neutral", na.rm = TRUE) #6
+sum(lit_filtered$`General effect on fish` == "Mixed", na.rm = TRUE) #5
+
+
+
+#SEAK
+sum(lit_filtered$Region == "SEAK", na.rm = TRUE) #12
+
+sum(lit_filtered$`Data type` == "Empirical" & lit_filtered$Region == "SEAK", na.rm = TRUE) #10
+sum(lit_filtered$`Data type` == "Management Action" & lit_filtered$Region == "SEAK", na.rm = TRUE) #1
+sum(lit_filtered$`Data type` == "TEK" & lit_filtered$Region == "SEAK", na.rm = TRUE) #1
+
+
+sum(lit_filtered$`Article Type` == "Publication" & lit_filtered$Region == "SEAK", na.rm = TRUE) #5
+sum(lit_filtered$`Article Type` == "Agency report" & lit_filtered$Region == "SEAK", na.rm = TRUE) #4
+sum(lit_filtered$`Article Type` == "Thesis/dissertation" & lit_filtered$Region == "SEAK", na.rm = TRUE) #1
+
+
+#SCAK
+sum(lit_filtered$Region == "SCAK", na.rm = TRUE) #14
+
+sum(lit_filtered$`Data type` == "Empirical" & lit_filtered$Region == "SCAK", na.rm = TRUE) #10
+sum(lit_filtered$`Data type` == "Management Action" & lit_filtered$Region == "SCAK", na.rm = TRUE) #1
+sum(lit_filtered$`Data type` == "TEK" & lit_filtered$Region == "SCAK", na.rm = TRUE) #3
+
+
+#SWAK
+sum(lit_filtered$Region == "SWAK", na.rm = TRUE) #13
+
+sum(lit_filtered$`Data type` == "Empirical" & lit_filtered$Region == "SWAK", na.rm = TRUE) #8
+sum(lit_filtered$`Data type` == "Management Action" & lit_filtered$Region == "SWAK", na.rm = TRUE) #1
+sum(lit_filtered$`Data type` == "TEK" & lit_filtered$Region == "SWAK", na.rm = TRUE) #4
+
+
+#Interior/Yukon
+sum(lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #17
+
+sum(lit_filtered$`Data type` == "Empirical" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #12
+sum(lit_filtered$`Data type` == "Management Action" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #1
+sum(lit_filtered$`Data type` == "TEK" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #4
+
+
+#Arctic
+
+sum(lit_filtered$Region == "Arctic", na.rm = TRUE) #7
+
+sum(lit_filtered$`Data type` == "Empirical" & lit_filtered$Region == "Arctic", na.rm = TRUE) #5
+sum(lit_filtered$`Data type` == "Management Action" & lit_filtered$Region == "Arctic", na.rm = TRUE) #1
+sum(lit_filtered$`Data type` == "TEK" & lit_filtered$Region == "Arctic", na.rm = TRUE) #1
+
+
+
+
+
+
+
+
+
+
+# Plotting ----------------------------------------------------------------
+
+
 cols <- c(
   "#1B3A4B",
   "#2A6F97",
