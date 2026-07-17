@@ -152,8 +152,8 @@ datatype_plot <- ggplot(lit_filtered2, aes(x = `Data type`, fill = `General effe
 datatype_plot
 
 ggsave("Figures/datatype_plot.jpeg", datatype_plot, 
-       width = 7, 
-       height = 5, 
+       width = 8, 
+       height = 6, 
        dpi = 300)
 
 
