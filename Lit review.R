@@ -112,12 +112,6 @@ sum(lit_filtered$`Data type` == "TEK" & lit_filtered$Region == "Arctic", na.rm =
 
 
 
-
-
-
-
-
-
 # Plotting ----------------------------------------------------------------
 
 
@@ -140,7 +134,7 @@ Regions_plot <- ggplot(lit_filtered, aes(x = Region, fill = `Data type`)) +
   geom_bar(width = 0.7) + #color = "black",
   coord_flip() +
   scale_fill_manual(values = cols) +
-  labs(x = NULL, y = "Number of studies", fill = "Data type") +
+  labs(title = "C", x = NULL, y = "Number of studies", fill = "Data type") +
   theme_cowplot() +
   theme(
     legend.position = "bottom",
@@ -186,7 +180,7 @@ effects_plot <- ggplot(lit_filtered2, aes(x = Region, fill = `General effect on 
     limits = effect_order,
     breaks = effect_order
   ) +
-  labs(x = NULL, y = "Number of studies", fill = "General effect on fish") +
+  labs(title = "A", x = NULL, y = "Number of studies", fill = "General effect on fish") +
   theme_cowplot() +
   theme(
     legend.position = "bottom",
@@ -218,10 +212,10 @@ datatype_plot <- ggplot(lit_filtered2, aes(x = `Data type`, fill = `General effe
     limits = effect_order,
     breaks = effect_order
   ) +
-  labs(x = NULL, y = "Number of studies", fill = "General effect on fish") +
+  labs(title = "B", x = NULL, y = "Number of studies", fill = "General effect on fish") +
   theme_cowplot() +
   theme(
-    legend.position = "bottom",
+    legend.position = "none",
     legend.title = element_text(face = "bold"),
     axis.text.y = element_text(size = 12),
     axis.text.x = element_text(size = 12),
@@ -247,7 +241,7 @@ pubs_over_time <- lit_filtered %>%
   ggplot(aes(x = Decade)) +
   geom_bar() +
   scale_x_continuous(breaks = seq(1960, 2030, 10)) +
-  labs(x = "Decade", y = "Number of studies") +
+  labs(title = "D", x = "Decade", y = "Number of studies") +
   theme_cowplot()
 pubs_over_time
 
