@@ -2,6 +2,16 @@
 #################### Alaska Beaver and Fish Literature Review ##################
 ################ Authors: Will Samuel (UAF) and Erin Larson (UAA) ##############
 ################################################################################
+# Update log
+# 2026-10-27: 69 documents included (was 63).
+#   Added: Taylor 2012, Netro 2008, von Finster 2012, Ott and Morris 2011,
+#          de Graff 2018 (Interior/Yukon); Harding 1993 (SEAK).
+#   Martin 1988 moved from SEAK to SCAK (Tiekel River, Copper River basin).
+#   Somerville and Marie year corrected from 2006 to 2015.
+#   Elliot 2011 corrected to Elliott 1992 (NAJFM 12:837-840).
+#   Count comments below updated to match this version of the bibliography.
+################################################################################
+
 
 
 library(tidyverse)
@@ -26,7 +36,7 @@ lit_filtered <- lit %>%
   filter(!is.na(Region), !is.na(`Data type`),
          `Include in Map` == "Y")
   
-nrow(lit_filtered) #62 articles that directly discuss beaver/fish interactions
+nrow(lit_filtered) #69 articles that directly discuss beaver/fish interactions
 
 
 
@@ -45,22 +55,22 @@ lit_filtered <- lit_filtered %>%
 
 # Summary Statisitics -----------------------------------------------------
 #Overall
-nrow(lit_filtered) #63
+nrow(lit_filtered) #69
 sum(lit_filtered$`Article Type` == "Publication", na.rm = TRUE) #19
-sum(lit_filtered$`Article Type` == "Agency report", na.rm = TRUE) #28
-sum(lit_filtered$`Article Type` == "Thesis/dissertation", na.rm = TRUE) #10
+sum(lit_filtered$`Article Type` == "Agency report", na.rm = TRUE) #33
+sum(lit_filtered$`Article Type` == "Thesis/dissertation", na.rm = TRUE) #11
 sum(lit_filtered$`Article Type` == "Conference proceeding", na.rm = TRUE) #1
 sum(lit_filtered$`Article Type` == "Book", na.rm = TRUE) #0
 sum(lit_filtered$`Article Type` %in% c("White paper", "Unpublished data"), na.rm = TRUE) #5
 
-sum(lit_filtered$`Data type` == "Empirical", na.rm = TRUE) #45
-sum(lit_filtered$`Data type` == "Management Action", na.rm = TRUE) #5
+sum(lit_filtered$`Data type` == "Empirical", na.rm = TRUE) #50
+sum(lit_filtered$`Data type` == "Management Action", na.rm = TRUE) #6
 sum(lit_filtered$`Data type` == "TEK", na.rm = TRUE) #13
 
-sum(lit_filtered$`General effect on fish` == "Positive", na.rm = TRUE) #13
-sum(lit_filtered$`General effect on fish` == "Negative", na.rm = TRUE) #39
-sum(lit_filtered$`General effect on fish` == "Neutral", na.rm = TRUE) #6
-sum(lit_filtered$`General effect on fish` == "Mixed", na.rm = TRUE) #5
+sum(lit_filtered$`General effect on fish` == "Positive", na.rm = TRUE) #14
+sum(lit_filtered$`General effect on fish` == "Negative", na.rm = TRUE) #44
+sum(lit_filtered$`General effect on fish` == "Neutral", na.rm = TRUE) #5
+sum(lit_filtered$`General effect on fish` == "Mixed", na.rm = TRUE) #6
 
 
 
@@ -78,9 +88,9 @@ sum(lit_filtered$`Article Type` == "Thesis/dissertation" & lit_filtered$Region =
 
 
 #SCAK
-sum(lit_filtered$Region == "SCAK", na.rm = TRUE) #14
+sum(lit_filtered$Region == "SCAK", na.rm = TRUE) #15
 
-sum(lit_filtered$`Data type` == "Empirical" & lit_filtered$Region == "SCAK", na.rm = TRUE) #10
+sum(lit_filtered$`Data type` == "Empirical" & lit_filtered$Region == "SCAK", na.rm = TRUE) #11
 sum(lit_filtered$`Data type` == "Management Action" & lit_filtered$Region == "SCAK", na.rm = TRUE) #1
 sum(lit_filtered$`Data type` == "TEK" & lit_filtered$Region == "SCAK", na.rm = TRUE) #3
 
@@ -94,10 +104,10 @@ sum(lit_filtered$`Data type` == "TEK" & lit_filtered$Region == "SWAK", na.rm = T
 
 
 #Interior/Yukon
-sum(lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #17
+sum(lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #22
 
-sum(lit_filtered$`Data type` == "Empirical" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #12
-sum(lit_filtered$`Data type` == "Management Action" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #1
+sum(lit_filtered$`Data type` == "Empirical" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #16
+sum(lit_filtered$`Data type` == "Management Action" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #2
 sum(lit_filtered$`Data type` == "TEK" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #4
 
 
