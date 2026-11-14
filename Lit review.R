@@ -3,6 +3,15 @@
 ################ Authors: Will Samuel (UAF) and Erin Larson (UAA) ##############
 ################################################################################
 # Update log
+# 2026-11-13: 70 documents included (was 69).
+#   Samuel 2023 thesis split into two studies, consistent with Malison et al.
+#   2014/2015/2016 (dissertation chapters counted separately):
+#     Samuel et al. in press (Ecosphere; thesis Chapter 1, fish-passage simulations),
+#       entered as Publication, Year = 2026 for the decade plot.
+#     Samuel 2023 (thesis Chapter 2, eDNA/abundance sampling), Thesis/dissertation.
+#   Both Empirical, Interior/Yukon, Negative. Count comments below updated.
+#   Kroeker n.d. has no publication date (Year = NA), so the decade plot
+#   (panel D) includes 69 of the 70 documents.
 # 2026-10-27: 69 documents included (was 63).
 #   Added: Taylor 2012, Netro 2008, von Finster 2012, Ott and Morris 2011,
 #          de Graff 2018 (Interior/Yukon); Harding 1993 (SEAK).
@@ -36,7 +45,7 @@ lit_filtered <- lit %>%
   filter(!is.na(Region), !is.na(`Data type`),
          `Include in Map` == "Y")
   
-nrow(lit_filtered) #69 articles that directly discuss beaver/fish interactions
+nrow(lit_filtered) #70 articles that directly discuss beaver/fish interactions
 
 
 
@@ -55,20 +64,20 @@ lit_filtered <- lit_filtered %>%
 
 # Summary Statisitics -----------------------------------------------------
 #Overall
-nrow(lit_filtered) #69
-sum(lit_filtered$`Article Type` == "Publication", na.rm = TRUE) #19
+nrow(lit_filtered) #70
+sum(lit_filtered$`Article Type` == "Publication", na.rm = TRUE) #20
 sum(lit_filtered$`Article Type` == "Agency report", na.rm = TRUE) #33
 sum(lit_filtered$`Article Type` == "Thesis/dissertation", na.rm = TRUE) #11
 sum(lit_filtered$`Article Type` == "Conference proceeding", na.rm = TRUE) #1
 sum(lit_filtered$`Article Type` == "Book", na.rm = TRUE) #0
 sum(lit_filtered$`Article Type` %in% c("White paper", "Unpublished data"), na.rm = TRUE) #5
 
-sum(lit_filtered$`Data type` == "Empirical", na.rm = TRUE) #50
+sum(lit_filtered$`Data type` == "Empirical", na.rm = TRUE) #51
 sum(lit_filtered$`Data type` == "Management Action", na.rm = TRUE) #6
 sum(lit_filtered$`Data type` == "TEK", na.rm = TRUE) #13
 
 sum(lit_filtered$`General effect on fish` == "Positive", na.rm = TRUE) #14
-sum(lit_filtered$`General effect on fish` == "Negative", na.rm = TRUE) #44
+sum(lit_filtered$`General effect on fish` == "Negative", na.rm = TRUE) #45
 sum(lit_filtered$`General effect on fish` == "Neutral", na.rm = TRUE) #5
 sum(lit_filtered$`General effect on fish` == "Mixed", na.rm = TRUE) #6
 
@@ -104,9 +113,9 @@ sum(lit_filtered$`Data type` == "TEK" & lit_filtered$Region == "SWAK", na.rm = T
 
 
 #Interior/Yukon
-sum(lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #22
+sum(lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #23
 
-sum(lit_filtered$`Data type` == "Empirical" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #16
+sum(lit_filtered$`Data type` == "Empirical" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #17
 sum(lit_filtered$`Data type` == "Management Action" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #2
 sum(lit_filtered$`Data type` == "TEK" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #4
 
