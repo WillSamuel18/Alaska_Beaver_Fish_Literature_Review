@@ -134,7 +134,7 @@ Regions_plot <- ggplot(lit_filtered, aes(x = Region, fill = `Data type`)) +
   geom_bar(width = 0.7) + #color = "black",
   coord_flip() +
   scale_fill_manual(values = cols) +
-  labs(title = "C", x = NULL, y = "Number of studies", fill = "Data type") +
+  labs(title = "C", x = NULL, y = "Number of documents", fill = "Data type") +
   theme_cowplot() +
   theme(
     legend.position = "bottom",
@@ -180,7 +180,7 @@ effects_plot <- ggplot(lit_filtered2, aes(x = Region, fill = `General effect on 
     limits = effect_order,
     breaks = effect_order
   ) +
-  labs(title = "A", x = NULL, y = "Number of studies", fill = "General effect on fish") +
+  labs(title = "A", x = NULL, y = "Number of documents", fill = "General effect on fish") +
   theme_cowplot() +
   theme(
     legend.position = "bottom",
@@ -212,7 +212,7 @@ datatype_plot <- ggplot(lit_filtered2, aes(x = `Data type`, fill = `General effe
     limits = effect_order,
     breaks = effect_order
   ) +
-  labs(title = "B", x = NULL, y = "Number of studies", fill = "General effect on fish") +
+  labs(title = "B", x = NULL, y = "Number of documents", fill = "General effect on fish") +
   theme_cowplot() +
   theme(
     legend.position = "none",
@@ -241,7 +241,7 @@ pubs_over_time <- lit_filtered %>%
   ggplot(aes(x = Decade)) +
   geom_bar() +
   scale_x_continuous(breaks = seq(1960, 2030, 10)) +
-  labs(title = "D", x = "Decade", y = "Number of studies") +
+  labs(title = "D", x = "Decade", y = "Number of documents") +
   theme_cowplot()
 pubs_over_time
 
@@ -264,10 +264,12 @@ ggsave("Figures/panel.jpeg", panel,
 
 
 # Effects by life stage (standalone figure) -------------------------------
-# Documents can involve more than one life stage, so a document is counted once
-# for each life stage it involves (bars sum to more than 70). Codes: s = spawning
-# adults, r = rearing juveniles, m = migrating (non-spawning movement),
-# p = present (life stage not specified). One document has no life stage coded.
+# Built from the "Species effects" tab (one row per document x species), so the
+# unit is the species-level reported effect. A reported effect that involves more
+# than one life stage is counted once for each life stage, so bars sum to more
+# than the 129 species-level reported effects. Codes: s = spawning adults
+# (including adults delayed or blocked on spawning migrations), r = rearing
+# juveniles, m = migrating (non-spawning movement), p = present (not specified).
 
 lifestage_labels <- c(
   s = "Spawning adults",
@@ -276,13 +278,20 @@ lifestage_labels <- c(
   p = "Present (unspecified)"
 )
 
-lit_lifestage <- lit_filtered2 %>%
-  filter(!is.na(Lifestage), Lifestage != "NA") %>%
-  mutate(Lifestage = str_to_lower(Lifestage)) %>%
-  separate_rows(Lifestage, sep = ",") %>%
-  mutate(Lifestage = str_trim(Lifestage)) %>%
+lit_lifestage <- read_excel("Annotated bibliography Final.xlsx", sheet = "Species effects") %>%
+  semi_join(lit_filtered, by = "In text citation") %>%
+  rename(`General effect on fish` = `Effect on this species`) %>%
+  mutate(`Life stage` = str_to_lower(`Life stage`)) %>%
+  separate_rows(`Life stage`, sep = ",") %>%
+  mutate(Lifestage = str_trim(`Life stage`)) %>%
   filter(Lifestage %in% names(lifestage_labels)) %>%
-  distinct(`In text citation`, Lifestage, .keep_all = TRUE) %>%
+  distinct(`In text citation`, `Species group`, Lifestage, .keep_all = TRUE) %>%
+  # Where a life stage had a different effect from the species-level effect
+  # (e.g., "s: Neutral"), use that effect for that life stage
+  mutate(stage_effect = str_match(`Life-stage effect (if different)`,
+                                  paste0(Lifestage, ":\\s*(\\w+)"))[, 2],
+         `General effect on fish` = coalesce(stage_effect, `General effect on fish`),
+         `General effect on fish` = factor(`General effect on fish`, levels = effect_order)) %>%
   mutate(Lifestage = factor(lifestage_labels[Lifestage],
                             levels = rev(lifestage_labels)))
 
@@ -290,8 +299,7 @@ lit_lifestage <- lit_filtered2 %>%
 lit_lifestage %>%
   count(Lifestage, `General effect on fish`) %>%
   pivot_wider(names_from = `General effect on fish`, values_from = n, values_fill = 0)
-# Spawning adults: 25 negative, 2 neutral, 4 mixed, 0 positive (31 documents)
-# Rearing juveniles: 10 negative, 1 neutral, 3 mixed, 13 positive (27 documents)
+nrow(lit_lifestage)
 
 lifestage_plot <- ggplot(lit_lifestage, aes(x = Lifestage, fill = `General effect on fish`)) +
   geom_bar(width = 0.7) +
@@ -301,7 +309,7 @@ lifestage_plot <- ggplot(lit_lifestage, aes(x = Lifestage, fill = `General effec
     limits = effect_order,
     breaks = effect_order
   ) +
-  labs(x = NULL, y = "Number of studies", fill = "General effect on fish") +
+  labs(x = NULL, y = "Number of reported effects", fill = "General effect on fish") +
   theme_cowplot() +
   theme(
     legend.position = "bottom",
@@ -321,204 +329,93 @@ ggsave("Figures/lifestage_plot.jpeg", lifestage_plot,
 
 
 
-# Species x region evidence map ---------------------------------------------
-# Each tile is shaded by the number of documents that discussed a species in a
-# region. Labels give the total and, underneath, the number of documents with
-# negative, neutral, mixed, and positive effects (same colors as Figure 2).
-# A document is counted once for each species it discusses.
+# Species effects and research effort (standalone figure) -------------------
+# Reads the "Species effects" tab: one row per document x species, with the
+# effect on that species (coded per species, not inherited from the document).
+# Left (A): number of documents for each species, split by effect on that species
+# (all regions combined), with totals at the end of each bar.
+# Right (B): number of documents that addressed each species in each region
+# (research effort only; no effect colors). Blank tiles = no documents found.
+# A document is counted once for each species it addresses, so totals sum to
+# more than the number of documents. Species rows in A and B share the same order.
 
-species_lookup <- c(
-  "Coho" = "Coho Salmon",
-  "Chinook" = "Chinook Salmon",
-  "King" = "Chinook Salmon",
-  "Sockeye" = "Sockeye Salmon",
-  "Chum" = "Chum Salmon",
-  "Pink" = "Pink Salmon",
-  "Arctic Grayling" = "Arctic Grayling",
-  "Dolly Varden" = "Dolly Varden",
-  "Humpback Whitefish" = "Whitefishes and ciscoes",
-  "Broad Whitefish" = "Whitefishes and ciscoes",
-  "Least Cisco" = "Whitefishes and ciscoes",
-  "Bering Cisco" = "Whitefishes and ciscoes",
-  "Sheefish" = "Whitefishes and ciscoes",
-  "Northern Pike" = "Northern Pike",
-  "Burbot" = "Burbot",
-  "Cutthroat Trout" = "Coastal Cutthroat Trout",
-  "Stickleback" = "Sticklebacks"
-)
+species_effects <- read_excel("Annotated bibliography Final.xlsx", sheet = "Species effects") %>%
+  semi_join(lit_filtered, by = "In text citation") %>%   # only documents used in the figures
+  left_join(select(lit_filtered, `In text citation`, Region), by = "In text citation") %>%
+  rename(Species_group = `Species group`,
+         `General effect on fish` = `Effect on this species`) %>%
+  mutate(`General effect on fish` = factor(`General effect on fish`, levels = effect_order))
 
-lit_species <- lit_filtered2 %>%
-  separate_rows(Species, sep = ",") %>%
-  mutate(Species = str_trim(Species)) %>%
-  filter(Species != "", Species != "NA") %>%
-  mutate(Species_group = recode(Species, !!!species_lookup)) %>%
-  distinct(`In text citation`, Species_group, .keep_all = TRUE)
-
-# Any species names not in the lookup table show up here (should be empty)
-setdiff(unique(lit_species$Species), names(species_lookup))
+nrow(species_effects)                              # document x species rows
+n_distinct(species_effects$`In text citation`)     # documents with species rows
 
 region_order <- c("SEAK", "SCAK", "SWAK", "Interior/Yukon", "Arctic")
 
-species_counts <- lit_species %>%
-  mutate(Region = as.character(Region)) %>%
-  bind_rows(mutate(., Region = "All regions")) %>%
-  count(Species_group, Region, `General effect on fish`) %>%
-  pivot_wider(names_from = `General effect on fish`, values_from = n, values_fill = 0) %>%
-  mutate(Total = Negative + Neutral + Mixed + Positive) %>%
-  complete(Species_group, Region,
-           fill = list(Negative = 0, Neutral = 0, Mixed = 0, Positive = 0, Total = 0)) %>%
-  mutate(Region = factor(Region, levels = c(region_order, "All regions")))
+species_totals <- species_effects %>%
+  count(Species_group, name = "n")
 
-species_order <- species_counts %>%
-  filter(Region == "All regions") %>%
-  arrange(Total) %>%
+species_order <- species_totals %>%
+  arrange(n) %>%
   pull(Species_group)
 
-species_counts <- species_counts %>%
+species_effects <- species_effects %>%
+  mutate(Species_group = factor(Species_group, levels = species_order))
+species_totals <- species_totals %>%
   mutate(Species_group = factor(Species_group, levels = species_order))
 
-species_counts  # table of totals and effect counts by species and region
+# Summary table: effect counts by species
+species_effects %>%
+  count(Species_group, `General effect on fish`) %>%
+  pivot_wider(names_from = `General effect on fish`, values_from = n, values_fill = 0)
 
-# Long format for the colored effect counts under each total
-species_effects <- species_counts %>%
-  filter(Total > 0) %>%
-  pivot_longer(c(Negative, Neutral, Mixed, Positive),
-               names_to = "General effect on fish", values_to = "n") %>%
-  mutate(`General effect on fish` = factor(`General effect on fish`, levels = effect_order),
-         x_offset = c(-0.27, -0.09, 0.09, 0.27)[as.integer(`General effect on fish`)],
-         x = as.integer(Region) + x_offset,
-         y = as.integer(Species_group) - 0.2)
-
-heat_max <- max(species_counts$Total[species_counts$Region != "All regions"])
-
-species_map <- ggplot() +
-  geom_tile(data = filter(species_counts, Region != "All regions"),
-            aes(x = as.integer(Region), y = as.integer(Species_group), fill = Total),
-            color = "white", linewidth = 1.2) +
-  geom_text(data = filter(species_counts, Total > 0),
-            aes(x = as.integer(Region), y = as.integer(Species_group) + 0.17, label = Total),
-            fontface = "bold", size = 4.6) +
-  geom_text(data = species_effects,
-            aes(x = x, y = y, label = n, color = `General effect on fish`),
-            fontface = "bold", size = 3.4, show.legend = FALSE) +
-  # invisible points so the effect colors get a legend matching Figure 2
-  geom_point(data = species_effects,
-             aes(x = x, y = y, color = `General effect on fish`),
-             shape = 15, size = 0, alpha = 0) +
-  geom_vline(xintercept = 5.5, color = "grey60") +
-  scale_fill_gradient(low = "grey97", high = "#7FA7BD", limits = c(0, heat_max),
-                      name = "Number of studies") +
-  scale_color_manual(values = cols_effect, limits = effect_order, breaks = effect_order,
-                     name = "General effect on fish") +
-  scale_x_continuous(breaks = 1:6, labels = c(region_order, "All regions"),
-                     position = "top", expand = c(0, 0)) +
-  scale_y_continuous(breaks = seq_along(species_order), labels = species_order,
-                     expand = c(0, 0)) +
-  coord_cartesian(xlim = c(0.5, 6.5), ylim = c(0.5, length(species_order) + 0.5), clip = "off") +
-  labs(x = NULL, y = NULL) +
-  guides(color = guide_legend(override.aes = list(size = 6, alpha = 1), order = 1),
-         fill = guide_colorbar(order = 2, barwidth = unit(4, "cm"))) +
+species_effects_plot <- ggplot(species_effects,
+                               aes(x = Species_group, fill = `General effect on fish`)) +
+  geom_bar(width = 0.7) +
+  geom_text(data = species_totals, aes(x = Species_group, y = n, label = n),
+            inherit.aes = FALSE, hjust = -0.3, size = 4, fontface = "bold") +
+  coord_flip() +
+  scale_x_discrete(expand = expansion(add = 0.5)) +  # rows line up with the heat map
+  scale_fill_manual(values = cols_effect, limits = effect_order, breaks = effect_order) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(title = "A", x = NULL, y = "Number of reported effects", fill = "General effect on fish") +
   theme_cowplot() +
   theme(
-    legend.position = "bottom",
-    legend.box = "vertical",
-    legend.box.just = "left",
     legend.title = element_text(face = "bold"),
     axis.text.y = element_text(size = 12),
     axis.text.x = element_text(size = 12),
-    axis.line = element_blank(),
-    axis.ticks = element_blank()
+    panel.grid.major.x = element_line(color = "grey85"),
+    panel.grid.major.y = element_blank()
   )
-species_map
+species_effects_plot
 
-ggsave("Figures/species_region_map.jpeg", species_map,
-       width = 10,
-       height = 9,
-       dpi = 300)
+effort_tiles <- species_effects %>%
+  mutate(Region = factor(as.character(Region), levels = region_order)) %>%
+  count(Species_group, Region, name = "Total") %>%
+  complete(Species_group, Region, fill = list(Total = 0))
 
-
-
-
-
-# Species x region evidence map, version 2 ---------------------------------
-# Same tiles (shaded by number of studies, label = total), with a stacked bar
-# under each species row showing the proportion of that species' documents
-# (all regions combined) with negative, neutral, mixed, and positive effects.
-
-v2_tiles <- species_counts %>%
-  filter(Region != "All regions") %>%
-  mutate(x = as.integer(Region),
-         y = as.integer(Species_group))
-
-v2_totals <- species_counts %>%
-  filter(Region == "All regions") %>%
-  mutate(y = as.integer(Species_group))
-
-bar_left <- 0.55   # bar spans the five region columns
-bar_right <- 5.45
-
-v2_bars <- v2_totals %>%
-  pivot_longer(c(Negative, Neutral, Mixed, Positive),
-               names_to = "General effect on fish", values_to = "n") %>%
-  mutate(`General effect on fish` = factor(`General effect on fish`, levels = effect_order)) %>%
-  arrange(Species_group, `General effect on fish`) %>%
-  group_by(Species_group) %>%
-  mutate(prop = n / sum(n),
-         xmax = bar_left + cumsum(prop) * (bar_right - bar_left),
-         xmin = xmax - prop * (bar_right - bar_left)) %>%
-  ungroup()
-
-species_map_v2 <- ggplot() +
-  geom_rect(data = v2_tiles,
-            aes(xmin = x - 0.48, xmax = x + 0.48, ymin = y - 0.05, ymax = y + 0.45, fill = Total),
-            color = NA) +
-  geom_text(data = filter(v2_tiles, Total > 0),
-            aes(x = x, y = y + 0.2, label = Total),
-            fontface = "bold", size = 4.4) +
-  geom_rect(data = filter(v2_bars, n > 0),
-            aes(xmin = xmin, xmax = xmax, ymin = y - 0.38, ymax = y - 0.14,
-                color = `General effect on fish`),
-            fill = NA, linewidth = 0, show.legend = FALSE) +
-  geom_rect(data = filter(v2_bars, n > 0),
-            aes(xmin = xmin, xmax = xmax, ymin = y - 0.38, ymax = y - 0.14),
-            fill = cols_effect[as.character(filter(v2_bars, n > 0)$`General effect on fish`)],
-            color = "white", linewidth = 0.4) +
-  geom_text(data = filter(v2_bars, prop >= 0.08),
-            aes(x = (xmin + xmax) / 2, y = y - 0.26, label = n),
-            color = "white", fontface = "bold", size = 3.3) +
-  geom_text(data = v2_totals,
-            aes(x = 6, y = y + 0.05, label = Total),
-            fontface = "bold", size = 4.4) +
-  # invisible points so the effect colors get a legend matching Figure 2
-  geom_point(data = v2_bars,
-             aes(x = 1, y = 1, color = `General effect on fish`),
-             shape = 15, size = 0, alpha = 0) +
-  scale_fill_gradient(low = "grey97", high = "#7FA7BD", limits = c(0, heat_max),
-                      name = "Number of studies") +
-  scale_color_manual(values = cols_effect, limits = effect_order, breaks = effect_order,
-                     name = "General effect on fish") +
-  scale_x_continuous(breaks = 1:6, labels = c(region_order, "All regions"),
-                     position = "top", expand = c(0, 0)) +
-  scale_y_continuous(breaks = seq_along(species_order), labels = species_order,
-                     expand = c(0, 0)) +
-  coord_cartesian(xlim = c(0.5, 6.5), ylim = c(0.5, length(species_order) + 0.5), clip = "off") +
-  labs(x = NULL, y = NULL) +
-  guides(color = guide_legend(override.aes = list(size = 6, alpha = 1), order = 1),
-         fill = guide_colorbar(order = 2, barwidth = unit(4, "cm"))) +
+species_effort_plot <- ggplot(effort_tiles, aes(x = Region, y = Species_group, fill = Total)) +
+  geom_tile(color = "white", linewidth = 1) +
+  geom_text(data = filter(effort_tiles, Total > 0), aes(label = Total),
+            size = 4, fontface = "bold") +
+  scale_fill_gradient(low = "grey95", high = "#61A5C2", guide = "none") +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = expansion(add = 0.5)) +
+  labs(title = "B", x = NULL, y = NULL) +
   theme_cowplot() +
   theme(
-    legend.position = "bottom",
-    legend.box = "vertical",
-    legend.box.just = "left",
-    legend.title = element_text(face = "bold"),
-    axis.text.y = element_text(size = 12),
-    axis.text.x = element_text(size = 12),
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(size = 11),
     axis.line = element_blank(),
     axis.ticks = element_blank()
   )
-species_map_v2
+species_effort_plot
 
-ggsave("Figures/species_region_map_v2.jpeg", species_map_v2,
-       width = 10,
-       height = 10,
+species_figure <- (species_effects_plot + species_effort_plot) +
+  plot_layout(guides = "collect") &
+  theme(legend.position = "bottom")
+species_figure
+
+ggsave("Figures/species_effects_effort.jpeg", species_figure,
+       width = 12,
+       height = 8,
        dpi = 300)
