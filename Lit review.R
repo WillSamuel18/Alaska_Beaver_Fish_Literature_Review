@@ -329,6 +329,68 @@ ggsave("Figures/lifestage_plot.jpeg", lifestage_plot,
 
 
 
+# Effects by lateral dam position (panel B of the life-stage figure) ---------
+# Document-level effects, grouped by where the beaver dams described in each
+# document were located ("Dam position" column, classified 2026-11-20):
+#   Main channel = dam across a channel with its own through-flow that fish
+#     travel along (streams and tributaries, lake outlets and inlets, and
+#     groundwater- or tributary-fed sloughs and spring brooks)
+#   Off-channel  = dam impounding a side channel, oxbow, floodplain pond, or
+#     backwater beside the main channel
+#   Both         = document described dams in both positions
+#   Not reported = position not described
+# 3 of 65 classifications were inferred from site descriptions (Dolloff 1993;
+# Carey and Koch 2019; S. Zavoico unpublished data); see "Dam position basis".
+
+position_levels <- c("Main channel", "Off-channel", "Both", "Not reported")
+
+lit_position <- lit_filtered2 %>%
+  filter(!is.na(`General effect on fish`)) %>%
+  mutate(`Dam position` = factor(`Dam position`, levels = rev(position_levels)))
+
+# Summary statistics by dam position
+lit_position %>%
+  count(`Dam position`, `General effect on fish`) %>%
+  pivot_wider(names_from = `General effect on fish`, values_from = n, values_fill = 0)
+# Main channel: 5 positive, 7 mixed, 1 neutral, 37 negative (n = 50)
+# Off-channel:  3 positive, 1 mixed, 1 neutral, 3 negative (n = 8)
+# Both:         2 positive, 1 mixed, 0 neutral, 4 negative (n = 7)
+# Not reported: 2 positive, 0 mixed, 2 neutral, 1 negative (n = 5)
+
+position_plot <- ggplot(lit_position, aes(x = `Dam position`, fill = `General effect on fish`)) +
+  geom_bar(width = 0.7) +
+  coord_flip() +
+  scale_fill_manual(
+    values = cols_effect,
+    limits = effect_order,
+    breaks = effect_order
+  ) +
+  labs(title = "B", x = NULL, y = "Number of documents", fill = "General effect on fish") +
+  theme_cowplot() +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold"),
+    axis.text.y = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    panel.grid.major.x = element_line(color = "grey85"),
+    panel.grid.major.y = element_blank()
+  )
+position_plot
+
+# Combined figure: (A) life stage, (B) dam position, shared legend
+lifestage_position_plot <- (lifestage_plot + labs(title = "A")) / position_plot +
+  plot_layout(guides = "collect") &
+  theme(legend.position = "bottom")
+lifestage_position_plot
+
+ggsave("Figures/lifestage_position_plot.jpeg", lifestage_position_plot,
+       width = 8,
+       height = 8,
+       dpi = 300)
+
+
+
+
 # Species effects and research effort (standalone figure) -------------------
 # Reads the "Species effects" tab: one row per document x species, with the
 # effect on that species (coded per species, not inherited from the document).
