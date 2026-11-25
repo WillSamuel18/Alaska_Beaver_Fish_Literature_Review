@@ -26,7 +26,7 @@ lit_filtered <- lit %>%
   filter(!is.na(Region), !is.na(`Data type`),
          `Include in Map` == "Y")
   
-nrow(lit_filtered) #69 articles that directly discuss beaver/fish interactions
+nrow(lit_filtered) #73 articles that directly discuss beaver/fish interactions
 
 
 
@@ -45,20 +45,20 @@ lit_filtered <- lit_filtered %>%
 
 # Summary Statisitics -----------------------------------------------------
 #Overall
-nrow(lit_filtered) #69
+nrow(lit_filtered) #73
 sum(lit_filtered$`Article Type` == "Publication", na.rm = TRUE) #19
-sum(lit_filtered$`Article Type` == "Agency report", na.rm = TRUE) #33
+sum(lit_filtered$`Article Type` == "Agency report", na.rm = TRUE) #37
 sum(lit_filtered$`Article Type` == "Thesis/dissertation", na.rm = TRUE) #11
 sum(lit_filtered$`Article Type` == "Conference proceeding", na.rm = TRUE) #1
 sum(lit_filtered$`Article Type` == "Book", na.rm = TRUE) #0
 sum(lit_filtered$`Article Type` %in% c("White paper", "Unpublished data"), na.rm = TRUE) #5
 
-sum(lit_filtered$`Data type` == "Empirical", na.rm = TRUE) #51
-sum(lit_filtered$`Data type` == "Management Action", na.rm = TRUE) #5
+sum(lit_filtered$`Data type` == "Empirical", na.rm = TRUE) #53
+sum(lit_filtered$`Data type` == "Management Action", na.rm = TRUE) #7
 sum(lit_filtered$`Data type` == "TEK", na.rm = TRUE) #13
 
 sum(lit_filtered$`General effect on fish` == "Positive", na.rm = TRUE) #12
-sum(lit_filtered$`General effect on fish` == "Negative", na.rm = TRUE) #44
+sum(lit_filtered$`General effect on fish` == "Negative", na.rm = TRUE) #48
 sum(lit_filtered$`General effect on fish` == "Neutral", na.rm = TRUE) #4
 sum(lit_filtered$`General effect on fish` == "Mixed", na.rm = TRUE) #9
 
@@ -94,10 +94,10 @@ sum(lit_filtered$`Data type` == "TEK" & lit_filtered$Region == "SWAK", na.rm = T
 
 
 #Interior/Yukon
-sum(lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #24
+sum(lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #28
 
-sum(lit_filtered$`Data type` == "Empirical" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #18
-sum(lit_filtered$`Data type` == "Management Action" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #2
+sum(lit_filtered$`Data type` == "Empirical" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #20
+sum(lit_filtered$`Data type` == "Management Action" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #4
 sum(lit_filtered$`Data type` == "TEK" & lit_filtered$Region == "Interior/Yukon", na.rm = TRUE) #4
 
 
@@ -267,7 +267,7 @@ ggsave("Figures/panel.jpeg", panel,
 # Built from the "Species effects" tab (one row per document x species), so the
 # unit is the species-level reported effect. A reported effect that involves more
 # than one life stage is counted once for each life stage, so bars sum to more
-# than the 131 species-level reported effects. Codes: s = spawning adults
+# than the 135 species-level reported effects. Codes: s = spawning adults
 # (including adults delayed or blocked on spawning migrations), r = rearing
 # juveniles, m = migrating (non-spawning movement), p = present (not specified).
 
@@ -339,8 +339,9 @@ ggsave("Figures/lifestage_plot.jpeg", lifestage_plot,
 #     backwater beside the main channel
 #   Both         = document described dams in both positions
 #   Not reported = position not described
-# 3 of 64 classifications were inferred from site descriptions (Dolloff 1993;
-# Carey and Koch 2019; S. Zavoico unpublished data); see "Dam position basis".
+# 4 of 68 classifications were inferred from site descriptions (Dolloff 1993;
+# Carey and Koch 2019; S. Zavoico unpublished data; Yukon Fish and Game
+# Association 2007); see "Dam position basis".
 
 position_levels <- c("Main channel", "Off-channel", "Both", "Not reported")
 
@@ -352,7 +353,7 @@ lit_position <- lit_filtered2 %>%
 lit_position %>%
   count(`Dam position`, `General effect on fish`) %>%
   pivot_wider(names_from = `General effect on fish`, values_from = n, values_fill = 0)
-# Main channel: 5 positive, 7 mixed, 1 neutral, 36 negative (n = 49)
+# Main channel: 5 positive, 7 mixed, 1 neutral, 40 negative (n = 53)
 # Off-channel:  3 positive, 1 mixed, 1 neutral, 3 negative (n = 8)
 # Both:         2 positive, 1 mixed, 0 neutral, 4 negative (n = 7)
 # Not reported: 2 positive, 0 mixed, 2 neutral, 1 negative (n = 5)
